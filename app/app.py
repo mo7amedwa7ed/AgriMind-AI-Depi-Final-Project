@@ -7,14 +7,14 @@ import sys
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
-COMPONENTS_DIR = APP_DIR / "Components"
-
-sys.path.insert(0, str(COMPONENTS_DIR))
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 
 import streamlit as st  # noqa: E402
 
-from components import (  # noqa: E402
+from Components.agrimind_ui import (  # noqa: E402
     feature_card,
+    find_page,
     footer,
     page_header,
     section_header,
@@ -24,55 +24,55 @@ from components import (  # noqa: E402
 
 setup_page("Dashboard", "🌱")
 
+# Pages are located by file-name keywords, so links only appear for files that exist.
+CROP_REC_PAGE = find_page("recommend")
+IRRIGATION_PAGE = find_page("irrigation")
+YIELD_PAGE = find_page("yield")
+
 page_header(
     "Smart Farming Starts with Intelligence.",
-    "AgriMind AI turns soil, climate and field data into clear crop and irrigation guidance, "
-    "using machine learning models you can use in minutes.",
+    "AgriMind AI turns soil, climate and field data into clear crop, irrigation and yield guidance, "
+    "using machine learning models.",
     icon="leaf",
     large=True,
 )
 
-cta1, cta2, _ = st.columns([1, 1, 1.4])
-with cta1:
-    st.page_link("pages/crop_recommendation.py", label="Recommend a crop", icon=":material/agriculture:")
-with cta2:
-    st.page_link("pages/irrigation_prediction.py", label="Predict irrigation", icon=":material/water_drop:")
-
-section_header("What you can do", "Two tools, each powered by a trained machine learning model.")
-col1, col2 = st.columns(2, gap="large")
+section_header("What you can do", "Three tools, each powered by a trained machine learning model.")
+col1, col2, col3 = st.columns(3, gap="large")
 with col1:
     feature_card(
         icon="sprout",
         title="Crop Recommendation",
         description="Find the crop best suited to your soil nutrients and growing conditions.",
-        points=[
-            "Seven inputs: nitrogen, phosphorus, potassium, temperature, humidity, pH and rainfall",
-            "The top 3 crops, each with a probability",
-            "A chart to compare how close the options are",
-        ],
-        page="pages/crop_recommendation.py",
+        points=["Soil nutrient and climate inputs", "Top crop matches with probabilities"],
+        page=CROP_REC_PAGE,
         cta="Open Crop Recommendation",
     )
 with col2:
     feature_card(
         icon="droplet",
-        title="Smart Irrigation Prediction",
-        description="Estimate how much irrigation a field needs from its soil, weather and crop details.",
-        points=[
-            "19 inputs across soil, weather, crop, irrigation and field information",
-            "A Low, Medium or High irrigation level",
-            "A plain-language explanation of what the level means",
-        ],
-        page="pages/irrigation_prediction.py",
+        title="Irrigation Prediction",
+        description="Estimate the irrigation level a field needs from soil, weather, crop and field details.",
+        points=["Soil, weather, crop and field inputs", "A Low, Medium or High irrigation level"],
+        page=IRRIGATION_PAGE,
         cta="Open Irrigation Prediction",
+    )
+with col3:
+    feature_card(
+        icon="chart",
+        title="Crop Yield Prediction",
+        description="Estimate the expected yield in tons per hectare (t/ha) for a crop, region and season.",
+        points=["Soil, weather and farm input values", "Crop, region, season and month"],
+        page=YIELD_PAGE,
+        cta="Open Crop Yield Prediction",
     )
 
 section_header("How it works", "From field data to a decision in three steps.")
 steps(
     [
-        ("Choose a tool", "Pick crop recommendation or irrigation prediction from the sidebar."),
-        ("Enter your field data", "Fill in the soil, weather and field values. Each input shows its unit and valid range."),
-        ("Review the result", "Read the prediction, see what it means, and use it alongside local advice."),
+        ("Choose a tool", "Open any of the three tools from the cards above or the sidebar."),
+        ("Enter your field data", "Fill in the soil, weather, crop and field values the tool asks for."),
+        ("Review the result", "Read the prediction and use it alongside local advice."),
     ]
 )
 

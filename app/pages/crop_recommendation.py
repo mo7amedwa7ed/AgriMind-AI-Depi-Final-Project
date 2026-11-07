@@ -4,6 +4,7 @@ import math
 import sys
 from pathlib import Path
 
+
 APP_DIR = Path(__file__).resolve().parents[1]  # .../app
 PROJECT_ROOT = Path(__file__).resolve().parents[2]  # project root
 if str(APP_DIR) not in sys.path:
@@ -14,7 +15,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from components import (  # noqa: E402
+from Components.components import (  # noqa: E402
     footer,
     page_header,
     probability_chart,

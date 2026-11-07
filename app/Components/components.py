@@ -7,8 +7,7 @@ from typing import Sequence
 
 import streamlit as st
 
-from styles import COLORS, inject_css
-
+from .styles import COLORS, inject_css
 APP_NAME = "AgriMind AI"
 
 # Inline SVG paths (24x24, stroke based) so no external icon assets are needed.
@@ -66,23 +65,38 @@ def render_sidebar() -> None:
             f"""
             <div class="am-brand">
               <div class="am-brand-mark">{icon_svg("leaf", 22)}</div>
-              <div><div class="am-brand-name">{APP_NAME}</div>
-              <div class="am-brand-tag">Smart agriculture platform</div></div>
+              <div>
+                <div class="am-brand-name">{APP_NAME}</div>
+                <div class="am-brand-tag">Smart agriculture platform</div>
+              </div>
             </div>
             <div class="am-nav-label">Navigate</div>
             """
         )
-        # Paths are relative to the entry script (app/app.py).
-        st.page_link("app.py", label="Dashboard", icon=":material/dashboard:")
-        st.page_link("pages/crop_recommendation.py", label="Crop Recommendation", icon=":material/agriculture:")
-        st.page_link("pages/irrigation_prediction.py", label="Irrigation Prediction", icon=":material/water_drop:")
+
+        st.page_link("app.py", label="Dashboard",
+                     icon=":material/dashboard:")
+
+        st.page_link("pages/crop_recommendation.py",
+                     label="Crop Recommendation",
+                     icon=":material/agriculture:")
+
+        st.page_link("pages/irrigation_prediction.py",
+                     label="Irrigation Prediction",
+                     icon=":material/water_drop:")
+
+        st.page_link("pages/3_Crop_Yield_Prediction.py",
+                     label="Crop Yield Prediction",
+                     icon=":material/monitoring:")
+
         render_html(
             """
-            <div class="am-side-note">Results are model-based decision support.
-            Combine them with local agronomic advice and field observation.</div>
+            <div class="am-side-note">
+                Results are model-based decision support.
+                Combine them with local agronomic advice and field observation.
+            </div>
             """
         )
-
 
 # ------------------------------------------------------------------- headers
 def page_header(title: str, subtitle: str, icon: str = "leaf", large: bool = False) -> None:

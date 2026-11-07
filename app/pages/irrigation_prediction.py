@@ -13,7 +13,7 @@ import joblib  # noqa: E402
 import pandas as pd  # noqa: E402
 import streamlit as st  # noqa: E402
 
-from components import (  # noqa: E402
+from Components.components import (  # noqa: E402
     footer,
     level_guide,
     page_header,
