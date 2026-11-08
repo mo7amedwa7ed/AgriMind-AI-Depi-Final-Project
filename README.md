@@ -6,7 +6,11 @@ AgriMind AI is an AI-powered smart agriculture platform designed to support data
 The project aims to contribute to more efficient agricultural practices through predictive analytics and intelligent recommendations.
 
 ---
-
+<p align="center">
+  <a href="PUT_YOUR_STREAMLIT_URL_HERE">
+    <img src="https://img.shields.io/badge/Live%20Demo-Try%20AgriMind%20AI-brightgreen?style=for-the-badge&logo=streamlit" alt="Live Demo">
+  </a>
+</p>
 ## 🚀 Key Features
 
 ### 🌾 1. Crop Recommendation
