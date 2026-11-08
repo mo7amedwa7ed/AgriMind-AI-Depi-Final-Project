@@ -21,9 +21,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from Components.agrimind_ui import (
+from Components.components import (  # noqa: E402
     footer,
     page_header,
+    probability_chart,
+    ranked_list,
     result_card,
     section_header,
     setup_page,

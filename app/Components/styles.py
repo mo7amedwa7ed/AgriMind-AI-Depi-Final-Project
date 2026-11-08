@@ -46,6 +46,23 @@ _ROOT_VARS = f"""
 """
 
 _CSS = """
+.st-key-yield_reset_container
+[data-testid="stBaseButton-secondary"] {
+    background: #E8F5E9 !important;
+    color: #14532D !important;
+    border: 1px solid #16A34A !important;
+    opacity: 1 !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+}
+
+.st-key-yield_reset_container
+[data-testid="stBaseButton-secondary"]:hover {
+    background: #D1FAE5 !important;
+    border-color: #14532D !important;
+    color: #14532D !important;
+}
+
 /* ---------- Global ---------- */
 html, body, .stApp, [data-testid="stAppViewContainer"] {
   font-family: var(--body);
@@ -223,24 +240,7 @@ p, li { line-height: 1.6; }
   .am-result-value { font-size: 2rem; }
 
 
-  /* ---------- Crop Yield Reset Button ---------- */
-.st-key-yield_reset_container
-[data-testid="stBaseButton-secondary"] {
-  background: #E8F5E9 !important;
-  color: #14532D !important;
-  border: 1px solid #16A34A !important;
-  opacity: 1 !important;
-  font-weight: 700 !important;
-  border-radius: 12px !important;
-  transition: all .2s ease;
-}
 
-.st-key-yield_reset_container
-[data-testid="stBaseButton-secondary"]:hover {
-  background: #D1FAE5 !important;
-  border-color: #14532D !important;
-  color: #14532D !important;
-}
 }
 """
 
