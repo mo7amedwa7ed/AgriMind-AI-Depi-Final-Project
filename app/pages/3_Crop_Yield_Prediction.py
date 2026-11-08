@@ -1,4 +1,3 @@
-
 """AgriMind AI - Crop Yield Prediction page.
 
 Pipeline: raw inputs -> 23 encoded features -> saved StandardScaler.transform()
@@ -370,12 +369,6 @@ if load_error:
     footer()
     st.stop()
 
-st.info(
-    "Default values are provided for convenience. "
-    "You can change any value before prediction. "
-    "Use the same units as the training dataset."
-)
-
 
 def reference_label(key: str) -> str:
     name = REFERENCE_CATEGORY_NAMES[key]
@@ -516,10 +509,13 @@ with st.form("yield_form"):
     )
 
 
-st.button(
-    "Reset inputs",
-    on_click=reset_form,
-)
+with st.container(key="yield_reset_container"):
+    st.button(
+        "Reset inputs",
+        on_click=reset_form,
+        type="secondary",
+        use_container_width=True,
+    )
 
 
 # ==========================================================================
@@ -621,12 +617,5 @@ if result:
                 columns={0: "value"}
             )
         )
-
-else:
-    st.info(
-        "Default values are already filled in. "
-        "You can edit them and click Predict Crop Yield."
-    )
-
 
 footer()
