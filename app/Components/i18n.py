@@ -16,6 +16,7 @@ from __future__ import annotations
 DEFAULT_LANG = "en"
 SUPPORTED = ("en", "ar")
 LANG_NAMES = {"en": "English", "ar": "العربية"}
+LANG_SHORT = {"en": "EN", "ar": "عربي"}  # compact labels for the navbar switch
 
 
 def get_lang() -> str:
@@ -52,7 +53,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # ---- brand / shell ------------------------------------------------------
     "app_name": _tr("AgriMind AI", "أجري مايند AI"),
     "tagline": _tr("Intelligent decisions for smarter farming", "قرارات ذكية لزراعة أكثر كفاءة"),
-    "nav_dashboard": _tr("Dashboard", "لوحة التحكم"),
+    "nav_dashboard": _tr("Home", "الرئيسية"),
+    "menu": _tr("Menu", "القائمة"),
     "nav_crop": _tr("Crop Recommendation", "توصية المحاصيل"),
     "nav_irrigation": _tr("Irrigation Prediction", "التنبؤ باحتياج الري"),
     "nav_yield": _tr("Crop Yield Prediction", "التنبؤ بإنتاجية المحصول"),

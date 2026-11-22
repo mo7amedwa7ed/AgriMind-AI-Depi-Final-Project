@@ -1,11 +1,11 @@
-"""Application shell for AgriMind AI: page config, theme, sidebar, dashboard, page headers."""
+"""Application shell for AgriMind AI: page config, theme, top navbar, dashboard, page headers."""
 from __future__ import annotations
 
 import streamlit as st
 
 from Components import components as ui
 from Components import ml, styles
-from Components.i18n import LANG_NAMES, SUPPORTED, get_lang, t
+from Components.i18n import LANG_SHORT, SUPPORTED, get_lang, t
 
 PAGE_ICON = "🌱"
 
@@ -16,7 +16,7 @@ PAGE_ICON = "🌱"
 def configure_page() -> None:
     """Must be the first Streamlit call of the run (called from app.py)."""
     st.set_page_config(page_title="AgriMind AI", page_icon=PAGE_ICON, layout="wide",
-                       initial_sidebar_state="expanded")
+                       initial_sidebar_state="collapsed")
     st.session_state.setdefault("lang", "en")
 
 
@@ -25,7 +25,7 @@ def apply_theme() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Sidebar
+# System status (model-file check) — used by the dashboard hero panel
 # --------------------------------------------------------------------------- #
 _STATUS_LABELS = (("crop", "model_crop"), ("irrigation", "model_irrigation"), ("yield", "model_yield"))
 
@@ -42,39 +42,57 @@ def _status_rows_html() -> str:
     return "".join(rows)
 
 
-def render_sidebar(pages: dict) -> None:
-    with st.sidebar:
+# --------------------------------------------------------------------------- #
+# Top navbar: brand | page links | menu button (mobile) + language switch
+# --------------------------------------------------------------------------- #
+def _is_current(page, current) -> bool:
+    return page is current or getattr(page, "url_path", None) == getattr(current, "url_path", None)
+
+
+def _toggle_menu() -> None:
+    st.session_state["menu_open"] = not st.session_state.get("menu_open", False)
+
+
+def _nav_link(page, current, ident: str) -> None:
+    # The key suffix (on/off) lets CSS highlight the active page deterministically.
+    state = "on" if _is_current(page, current) else "off"
+    with st.container(key=f"agitem_{state}_{ident}"):
+        st.page_link(page)
+
+
+def render_navbar(pages: dict, current) -> None:
+    """The only navigation UI.  Called once from app.py, so it appears on every page.
+
+    * desktop (> 1100px): brand, four page links, language switch
+    * smaller screens:    brand, hamburger button, language switch; the page links
+                          open in a dropdown panel below the bar
+    All links are real ``st.page_link`` calls (in-session navigation), and the language
+    switch is the single ``lang`` widget, so language and inputs survive navigation.
+    """
+    current_path = getattr(current, "url_path", None)
+    if st.session_state.get("_nav_last") != current_path:  # page changed -> close mobile menu
+        st.session_state["menu_open"] = False
+        st.session_state["_nav_last"] = current_path
+    menu_open = st.session_state.get("menu_open", False)
+
+    with st.container(key="agtopnav"):
         ui.md(
-            f'<div class="ag-brand"><div class="ag-logo">{PAGE_ICON}</div><div>'
-            f'<div class="ag-brand-name">{ui.esc(t("app_name"))}</div>'
-            f'<div class="ag-brand-tag">{ui.esc(t("tagline"))}</div></div></div>'
+            f'<div class="ag-top-brand"><div class="ag-logo">{PAGE_ICON}</div>'
+            f'<div class="ag-brand-name">{ui.esc(t("app_name"))}</div></div>'
         )
-        ui.md(f'<div class="ag-side-label">{ui.esc(t("nav_section"))}</div>')
-        for page in pages.values():
-            st.page_link(page)
-
-        ui.md(f'<div class="ag-side-label">{ui.esc(t("system_status"))}</div>')
-        ui.md(_status_rows_html())
-
-
-# --------------------------------------------------------------------------- #
-# Top navbar (brand + the ONE global language switcher, key="lang")
-# --------------------------------------------------------------------------- #
-def render_topbar() -> None:
-    """Rendered once from app.py, so it appears at the top of every page."""
-    with st.container(key="agtopbar"):
-        brand_col, lang_col = st.columns([4, 1])
-        with brand_col:
-            ui.md(
-                f'<div class="ag-top-brand"><div class="ag-logo">{PAGE_ICON}</div><div>'
-                f'<div class="ag-brand-name">{ui.esc(t("app_name"))}</div>'
-                f'<div class="ag-brand-tag">{ui.esc(t("tagline"))}</div></div></div>'
-            )
-        with lang_col:
+        with st.container(key="agnav_desk"):
+            for key, page in pages.items():
+                _nav_link(page, current, f"d_{key}")
+        with st.container(key="agnav_tools"):
+            st.button("✕" if menu_open else "☰", key="agnav_burger", on_click=_toggle_menu, help=t("menu"))
             st.radio(
                 t("language"), options=list(SUPPORTED), key="lang", horizontal=True,
-                format_func=lambda code: LANG_NAMES[code], label_visibility="collapsed",
+                format_func=lambda code: LANG_SHORT[code], label_visibility="collapsed",
             )
+        if menu_open:
+            with st.container(key="agnav_mobile"):
+                for key, page in pages.items():
+                    _nav_link(page, current, f"m_{key}")
 
 
 # --------------------------------------------------------------------------- #

@@ -1,0 +1,9 @@
+# Merge these lines into YOUR existing requirements.txt (keep everything already there).
+streamlit>=1.40        # st.navigation(position="hidden"), keyed containers
+plotly>=5.18
+pandas
+numpy
+scikit-learn           # keep the SAME version used to train/pickle your models
+joblib
+# only for running tests:
+pytest

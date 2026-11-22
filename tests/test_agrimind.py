@@ -167,3 +167,30 @@ def test_real_models_load_and_predict():
     assert specs
     out = ml.predict_yield({**_inputs()})
     assert out["tons_per_feddan"] == pytest.approx(out["tons_per_hectare"] * 0.42)
+
+
+# ------------------------------------------------------------------ navigation / layout
+def test_native_sidebar_is_not_used():
+    for f in (ROOT / "app").rglob("*.py"):
+        assert "st.sidebar" not in f.read_text(encoding="utf-8"), f
+
+
+def test_navbar_is_wired_once_in_entry_point():
+    src = (ROOT / "app" / "app.py").read_text(encoding="utf-8")
+    assert src.count("render_navbar(") == 1 and "render_sidebar" not in src
+    for page in ("pages/crop_recommendation.py", "pages/irrigation_prediction.py", "pages/3_Crop_Yield_Prediction.py"):
+        assert (ROOT / "app" / page).exists() and page in src  # links use real, existing files
+
+
+def test_navbar_css_is_balanced_and_complete():
+    from Components import styles
+    for lang in ("en", "ar"):
+        css = styles.build_css(lang)
+        assert "__" not in css and css.count("{") == css.count("}")
+        assert "st-key-agtopnav" in css and "max-width:1100px" in css
+
+
+def test_navbar_translations():
+    assert i18n.t("nav_dashboard", "en") == "Home" and i18n.t("nav_dashboard", "ar") == "الرئيسية"
+    assert i18n.t("menu", "ar") != "menu"
+    assert set(i18n.LANG_SHORT) == set(i18n.SUPPORTED)

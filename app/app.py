@@ -2,7 +2,7 @@
 
 Run from the project root:   streamlit run app/app.py
 
-This file only wires things together: page config, theme, navigation and sidebar.
+This file only wires things together: page config, theme, navigation and the top navbar.
 All UI lives in Components/, each tool lives in pages/.
 Requires Streamlit >= 1.40 (st.navigation with hidden default nav, keyed containers).
 """
@@ -30,6 +30,5 @@ PAGES = {
 }
 
 navigation = st.navigation(list(PAGES.values()), position="hidden")
-shell.render_sidebar(PAGES)
-shell.render_topbar()    # brand + language switcher, shown on every page
+shell.render_navbar(PAGES, navigation)   # brand + links + language switch on every page
 navigation.run()
