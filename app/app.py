@@ -31,4 +31,5 @@ PAGES = {
 
 navigation = st.navigation(list(PAGES.values()), position="hidden")
 shell.render_sidebar(PAGES)
+shell.render_topbar()    # brand + language switcher, shown on every page
 navigation.run()

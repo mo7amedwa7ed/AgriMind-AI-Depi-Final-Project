@@ -53,14 +53,28 @@ def render_sidebar(pages: dict) -> None:
         for page in pages.values():
             st.page_link(page)
 
-        ui.md(f'<div class="ag-side-label">{ui.esc(t("language"))}</div>')
-        st.radio(
-            t("language"), options=list(SUPPORTED), key="lang", horizontal=True,
-            format_func=lambda code: LANG_NAMES[code], label_visibility="collapsed",
-        )
-
         ui.md(f'<div class="ag-side-label">{ui.esc(t("system_status"))}</div>')
         ui.md(_status_rows_html())
+
+
+# --------------------------------------------------------------------------- #
+# Top navbar (brand + the ONE global language switcher, key="lang")
+# --------------------------------------------------------------------------- #
+def render_topbar() -> None:
+    """Rendered once from app.py, so it appears at the top of every page."""
+    with st.container(key="agtopbar"):
+        brand_col, lang_col = st.columns([4, 1])
+        with brand_col:
+            ui.md(
+                f'<div class="ag-top-brand"><div class="ag-logo">{PAGE_ICON}</div><div>'
+                f'<div class="ag-brand-name">{ui.esc(t("app_name"))}</div>'
+                f'<div class="ag-brand-tag">{ui.esc(t("tagline"))}</div></div></div>'
+            )
+        with lang_col:
+            st.radio(
+                t("language"), options=list(SUPPORTED), key="lang", horizontal=True,
+                format_func=lambda code: LANG_NAMES[code], label_visibility="collapsed",
+            )
 
 
 # --------------------------------------------------------------------------- #
