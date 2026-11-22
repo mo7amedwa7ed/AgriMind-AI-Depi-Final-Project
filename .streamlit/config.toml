@@ -1,0 +1,11 @@
+# Optional: applies the dark theme before the custom CSS loads (avoids a light flash).
+# Streamlit reads this file when launched from the project root: streamlit run app/app.py
+[theme]
+base = "dark"
+primaryColor = "#16A34A"
+backgroundColor = "#07130F"
+secondaryBackgroundColor = "#0D1F18"
+textColor = "#F1F5F2"
+
+[browser]
+gatherUsageStats = false

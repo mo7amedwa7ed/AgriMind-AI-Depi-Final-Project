@@ -1,233 +1,219 @@
-"""Reusable UI components for AgriMind AI."""
+"""Reusable UI building blocks for AgriMind AI.
 
+* HTML helpers (``md``, ``esc``) and visual blocks (hero result, tiles, callouts, tables)
+* Plotly charts that share the brand theme
+* Session-state helpers that keep inputs/results alive across navigation and language
+  switches (Streamlit drops the state of widgets that are not rendered on the current page).
+"""
 from __future__ import annotations
 
-import html
-from typing import Sequence
+import html as _html
+from typing import Any, Iterable
 
+import plotly.graph_objects as go
 import streamlit as st
 
-from .styles import COLORS, inject_css
-APP_NAME = "AgriMind AI"
+from Components import ml, styles
+from Components.i18n import get_lang, t
 
-# Inline SVG paths (24x24, stroke based) so no external icon assets are needed.
-_ICONS = {
-    "leaf": (
-        '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>'
-        '<path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>'
-    ),
-    "sprout": (
-        '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/>'
-        '<path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/>'
-        '<path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>'
-    ),
-    "droplet": '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
-}
+# --------------------------------------------------------------------------- #
+# HTML helpers
+# --------------------------------------------------------------------------- #
+
+def esc(value: Any) -> str:
+    return _html.escape(str(value))
 
 
-def _html(markup: str) -> str:
-    """Collapse indentation so Markdown never treats the HTML as a code block."""
-    return "".join(line.strip() for line in markup.splitlines())
+def md(markup: str) -> None:
+    """Render raw HTML.  Lines are stripped & joined so Markdown never treats
+    indented HTML as a code block."""
+    st.markdown("".join(line.strip() for line in markup.strip().splitlines()), unsafe_allow_html=True)
 
 
-def render_html(markup: str) -> None:
-    st.markdown(_html(markup), unsafe_allow_html=True)
+def section_header(title: str, subtitle: str = "") -> None:
+    sub = f"<p>{esc(subtitle)}</p>" if subtitle else ""
+    md(f'<div class="ag-section"><h2>{esc(title)}</h2>{sub}<div class="bar"></div></div>')
 
 
-def icon_svg(name: str, size: int = 24) -> str:
+def card_title(text: str) -> None:
+    md(f'<div class="ag-card-title">{esc(text)}</div>')
+
+
+def feature_card_html(icon: str, title: str, desc: str, tags: Iterable[str], delay: float = 0.0) -> str:
+    tag_html = "".join(f'<span class="ag-tag">{esc(x)}</span>' for x in tags)
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24" '
-        'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" '
-        f'stroke-linejoin="round" aria-hidden="true">{_ICONS.get(name, _ICONS["leaf"])}</svg>'
+        f'<div class="ag-fcard" style="animation-delay:{delay}s">'
+        f'<div class="ag-ficon">{icon}</div><div class="ag-ftitle">{esc(title)}</div>'
+        f'<p class="ag-fdesc">{esc(desc)}</p><div class="ag-tags">{tag_html}</div></div>'
     )
 
 
-def _e(value: object) -> str:
-    return html.escape(str(value))
+def info_card(title: str, body: str, css: str = "ag-pillar") -> None:
+    md(f'<div class="{css}"><h3>{esc(title)}</h3><p>{esc(body)}</p></div>')
 
 
-# ---------------------------------------------------------------- page setup
-def setup_page(title: str, icon: str = "🌱") -> None:
-    """Configure the page, inject CSS and draw the sidebar. Call first on every page."""
-    st.set_page_config(
-        page_title=f"{APP_NAME} - {title}",
-        page_icon=icon,
-        layout="wide",
-        initial_sidebar_state="expanded",
+def step_card(num: int, title: str, body: str) -> None:
+    md(
+        f'<div class="ag-step"><div class="ag-step-num">{num}</div>'
+        f"<div><h3>{esc(title)}</h3><p>{esc(body)}</p></div></div>"
     )
-    inject_css()
-    render_sidebar()
 
 
-def render_sidebar() -> None:
-    with st.sidebar:
-        render_html(
-            f"""
-            <div class="am-brand">
-              <div class="am-brand-mark">{icon_svg("leaf", 22)}</div>
-              <div>
-                <div class="am-brand-name">{APP_NAME}</div>
-                <div class="am-brand-tag">Smart agriculture platform</div>
-              </div>
-            </div>
-            <div class="am-nav-label">Navigate</div>
-            """
+def callout(text: str, kind: str = "info") -> None:
+    cls = {"warn": " warn", "error": " error"}.get(kind, "")
+    md(f'<div class="ag-callout{cls}">{esc(text)}</div>')
+
+
+def empty_state(icon: str = "🌱") -> None:
+    md(
+        f'<div class="ag-empty"><div class="ic">{icon}</div>'
+        f'<h3>{esc(t("awaiting_title"))}</h3><p>{esc(t("awaiting_text"))}</p></div>'
+    )
+
+
+def result_hero(kicker: str, value: str, sub: str = "", accent: str = styles.LIME, unit: str = "") -> None:
+    unit_html = f"<small>{esc(unit)}</small>" if unit else ""
+    sub_html = f'<div class="ag-sub">{esc(sub)}</div>' if sub else ""
+    md(
+        f'<div class="ag-result-hero" style="--accent:{accent}">'
+        f'<div class="ag-kicker">{esc(kicker)}</div>'
+        f'<div class="ag-value">{esc(value)}{unit_html}</div>{sub_html}</div>'
+    )
+
+
+def metric_tile(label: str, value: str, unit: str = "") -> None:
+    unit_html = f"<small>{esc(unit)}</small>" if unit else ""
+    md(
+        f'<div class="ag-tile"><div class="ag-tile-label">{esc(label)}</div>'
+        f'<div class="ag-tile-value">{esc(value)}{unit_html}</div></div>'
+    )
+
+
+def summary_table(rows: list[tuple[str, Any]]) -> None:
+    body = "".join(f"<tr><td>{esc(k)}</td><td>{esc(v)}</td></tr>" for k, v in rows)
+    md(f'<table class="ag-table">{body}</table>')
+
+
+# --------------------------------------------------------------------------- #
+# Charts
+# --------------------------------------------------------------------------- #
+
+def probability_bar_chart(labels: list[str], probs: list[float], title: str) -> go.Figure:
+    """Horizontal bar chart of class probabilities (0-100 %)."""
+    lang = get_lang()
+    values = [p * 100 for p in probs]
+    colors = [styles.LIME] + [styles.GREEN] * (len(values) - 1)
+    fig = go.Figure(
+        go.Bar(
+            x=values[::-1], y=labels[::-1], orientation="h",
+            marker=dict(color=colors[::-1], line=dict(color=styles.BORDER, width=1)),
+            text=[f"{v:.1f}%" for v in values[::-1]], textposition="outside", cliponaxis=False,
+            hovertemplate="%{y}: %{x:.2f}%<extra></extra>",
         )
+    )
+    fig.update_layout(**styles.plotly_layout(lang, height=60 + 52 * len(values), title=title))
+    fig.update_xaxes(range=[0, 115], showgrid=True, gridcolor=styles.BORDER, zeroline=False,
+                     ticksuffix="%", tickfont=dict(color=styles.MUTED))
+    fig.update_yaxes(showgrid=False, tickfont=dict(size=13))
+    return fig
 
-        st.page_link("app.py", label="Dashboard",
-                     icon=":material/dashboard:")
 
-        st.page_link("pages/crop_recommendation.py",
-                     label="Crop Recommendation",
-                     icon=":material/agriculture:")
-
-        st.page_link("pages/irrigation_prediction.py",
-                     label="Irrigation Prediction",
-                     icon=":material/water_drop:")
-
-        st.page_link("pages/3_Crop_Yield_Prediction.py",
-                     label="Crop Yield Prediction",
-                     icon=":material/monitoring:")
-
-        render_html(
-            """
-            <div class="am-side-note">
-                Results are model-based decision support.
-                Combine them with local agronomic advice and field observation.
-            </div>
-            """
+def donut_chart(labels: list[str], probs: list[float], colors: list[str], center_text: str, title: str) -> go.Figure:
+    lang = get_lang()
+    fig = go.Figure(
+        go.Pie(
+            labels=labels, values=[p * 100 for p in probs], hole=0.68, sort=False,
+            marker=dict(colors=colors, line=dict(color=styles.BG, width=3)),
+            textinfo="none", hovertemplate="%{label}: %{value:.1f}%<extra></extra>",
         )
-
-# ------------------------------------------------------------------- headers
-def page_header(title: str, subtitle: str, icon: str = "leaf", large: bool = False) -> None:
-    size = 30 if large else 26
-    render_html(
-        f"""
-        <div class="am-hero{' am-hero-lg' if large else ''}">
-          <div class="am-hero-row">
-            <div class="am-hero-icon">{icon_svg(icon, size)}</div>
-            <div><h1 class="am-hero-title">{_e(title)}</h1>
-            <p class="am-hero-sub">{_e(subtitle)}</p></div>
-          </div>
-        </div>
-        """
     )
-
-
-def section_header(title: str, description: str | None = None) -> None:
-    desc = f'<p class="am-section-desc">{_e(description)}</p>' if description else ""
-    render_html(f'<div class="am-section"><h2 class="am-section-title">{_e(title)}</h2>{desc}</div>')
-
-
-# --------------------------------------------------------------------- cards
-def feature_card(icon: str, title: str, description: str, points: Sequence[str], page: str, cta: str) -> None:
-    """A bordered card with a navigation link to another page."""
-    items = "".join(f"<li>{_e(p)}</li>" for p in points)
-    with st.container(border=True):
-        render_html(
-            f"""
-            <div class="am-card-icon">{icon_svg(icon, 26)}</div>
-            <h3 class="am-card-title">{_e(title)}</h3>
-            <p class="am-card-text">{_e(description)}</p>
-            <ul class="am-list">{items}</ul>
-            """
-        )
-        st.page_link(page, label=cta)
-
-
-def steps(items: Sequence[tuple[str, str]]) -> None:
-    """A numbered sequence of steps (the content really is ordered)."""
-    cards = "".join(
-        f'<div class="am-step"><div class="am-step-num">{i}</div>'
-        f'<p class="am-step-title">{_e(t)}</p><p class="am-step-text">{_e(d)}</p></div>'
-        for i, (t, d) in enumerate(items, start=1)
+    layout = styles.plotly_layout(lang, height=300, title=title)
+    layout.update(
+        showlegend=True,
+        legend=dict(orientation="h", y=-0.08, x=0.5, xanchor="center", font=dict(color=styles.TEXT)),
+        annotations=[dict(text=f"<b>{center_text}</b>", x=0.5, y=0.5, showarrow=False,
+                          font=dict(size=20, color=styles.TEXT))],
     )
-    render_html(f'<div class="am-steps">{cards}</div>')
+    fig.update_layout(**layout)
+    return fig
 
 
-def result_card(
-    label: str,
-    value: str,
-    description: str,
-    tone: str = "default",
-    icon: str = "sprout",
-    footnote: str | None = None,
-) -> None:
-    """Prominent prediction card. tone: default | low | medium | high."""
-    foot = f'<p class="am-result-foot">{_e(footnote)}</p>' if footnote else ""
-    tone_class = f" tone-{tone}" if tone in {"low", "medium", "high"} else ""
-    render_html(
-        f"""
-        <div class="am-result{tone_class}">
-          <div class="am-result-icon">{icon_svg(icon, 26)}</div>
-          <div><p class="am-result-label">{_e(label)}</p>
-          <div class="am-result-value">{_e(value)}</div>
-          <p class="am-result-text">{_e(description)}</p>{foot}</div>
-        </div>
-        """
+def value_bar_chart(labels: list[str], values: list[float], title: str, highlight: int = 0) -> go.Figure:
+    lang = get_lang()
+    colors = [styles.LIME if i == highlight else styles.GREEN for i in range(len(values))]
+    fig = go.Figure(
+        go.Bar(x=labels, y=values, marker=dict(color=colors, line=dict(color=styles.BORDER, width=1)),
+               text=[f"{v:.2f}" for v in values], textposition="outside", cliponaxis=False,
+               hovertemplate="%{x}: %{y:.3f}<extra></extra>")
     )
+    fig.update_layout(**styles.plotly_layout(lang, height=300, title=title), bargap=0.45)
+    fig.update_yaxes(showgrid=True, gridcolor=styles.BORDER, zeroline=False, tickfont=dict(color=styles.MUTED),
+                     rangemode="tozero")
+    fig.update_xaxes(showgrid=False)
+    return fig
 
 
-def ranked_list(items: Sequence[tuple[str, float]]) -> None:
-    """Ranked rows with probability bars. Probabilities are 0-1 floats."""
-    rows = "".join(
-        f'<div class="am-rank"><div class="am-rank-pos">{i}</div>'
-        f'<div><div class="am-rank-name">{_e(name)}</div>'
-        f'<div class="am-rank-track"><div class="am-rank-fill" style="width:{max(p * 100, 0.5):.1f}%"></div></div></div>'
-        f'<div class="am-rank-pct">{p * 100:.1f}%</div></div>'
-        for i, (name, p) in enumerate(items, start=1)
-    )
-    render_html(f"<div>{rows}</div>")
+def show_chart(fig: go.Figure) -> None:
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
-def level_guide() -> None:
-    render_html(
-        """
-        <div class="am-guide">
-          <div class="am-guide-item low"><b>Low</b>Little extra water is needed right now.</div>
-          <div class="am-guide-item medium"><b>Medium</b>Moderate watering is advised. Keep monitoring.</div>
-          <div class="am-guide-item high"><b>High</b>The field needs significant irrigation soon.</div>
-        </div>
-        """
-    )
+# --------------------------------------------------------------------------- #
+# Session-state persistence (inputs + results)
+# --------------------------------------------------------------------------- #
+_INPUT_STORE = "_agrimind_inputs"
+_RESULT_STORE = "_agrimind_results"
 
 
-def probability_chart(items: Sequence[tuple[str, float]]) -> None:
-    """Horizontal bar chart of probabilities (Plotly, with a native fallback)."""
-    labels = [n for n, _ in items]
-    values = [round(p * 100, 1) for _, p in items]
+def restore_inputs(defaults: dict[str, Any]) -> None:
+    """Call BEFORE creating the widgets.  Re-seeds widget keys from the persistent store
+    (Streamlit deletes widget state when a page is left)."""
+    store = st.session_state.setdefault(_INPUT_STORE, {})
+    for key, default in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = store.get(key, default)
+
+
+def persist_inputs(keys: Iterable[str]) -> None:
+    """Call AFTER the widgets were created."""
+    store = st.session_state.setdefault(_INPUT_STORE, {})
+    for key in keys:
+        if key in st.session_state:
+            store[key] = st.session_state[key]
+
+
+def reset_inputs(defaults: dict[str, Any], result_name: str) -> None:
+    """Button callback: restore defaults and drop the stored result."""
+    store = st.session_state.setdefault(_INPUT_STORE, {})
+    for key, default in defaults.items():
+        st.session_state[key] = default
+        store[key] = default
+    st.session_state.setdefault(_RESULT_STORE, {}).pop(result_name, None)
+
+
+def save_result(name: str, payload: dict, inputs: dict[str, Any]) -> None:
+    st.session_state.setdefault(_RESULT_STORE, {})[name] = {"payload": payload, "inputs": dict(inputs)}
+
+
+def load_result(name: str) -> dict | None:
+    return st.session_state.get(_RESULT_STORE, {}).get(name)
+
+
+def collect(keys: Iterable[str]) -> dict[str, Any]:
+    return {k: st.session_state[k] for k in keys if k in st.session_state}
+
+
+def run_and_store(name: str, predict_fn, inputs: dict[str, Any]) -> bool:
+    """Run a prediction, store its (language-neutral) result, and show a friendly error
+    instead of a traceback if anything goes wrong."""
     try:
-        import plotly.graph_objects as go
-    except ImportError:
-        import pandas as pd
-
-        st.bar_chart(pd.DataFrame({"Probability (%)": values}, index=labels))
-        return
-
-    colors = [COLORS["emerald"] if i == 0 else "#B7D88C" for i in range(len(items))]
-    fig = go.Figure(go.Bar(x=values, y=labels, orientation="h", marker_color=colors))
-    fig.update_traces(texttemplate="%{x}%", textposition="outside", cliponaxis=False)
-    fig.update_layout(
-        height=100 + 70 * len(items),
-        margin=dict(l=0, r=30, t=10, b=10),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Figtree, sans-serif", color=COLORS["text"], size=14),
-        xaxis=dict(range=[0, 100], ticksuffix="%", gridcolor=COLORS["border"], title=None),
-        yaxis=dict(autorange="reversed", title=None),
-        showlegend=False,
-    )
-    st.plotly_chart(fig, config={"displayModeBar": False})
-
-
-# -------------------------------------------------------------------- footer
-def footer() -> None:
-    render_html(
-        f"""
-        <div class="am-footer">
-          <b>{APP_NAME}</b>
-          <p>Machine learning decision support for crop selection and irrigation planning.
-          Predictions are estimates, not guarantees, and do not replace advice from a local agronomist.</p>
-        </div>
-        """
-    )
+        payload = predict_fn()
+    except ml.ModelLoadError as exc:
+        callout(t("error_load", detail=exc), "error")
+    except ml.SchemaError as exc:
+        callout(t("error_schema", detail=exc), "error")
+    except Exception as exc:  # noqa: BLE001 - surface any model error to the user
+        callout(t("error_predict", detail=exc), "error")
+    else:
+        save_result(name, payload, inputs)
+        return True
+    return False
